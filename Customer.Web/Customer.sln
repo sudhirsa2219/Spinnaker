@@ -5,21 +5,21 @@ VisualStudioVersion = 17.8.34408.163
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{0CB8C063-EE8E-46F7-B20B-A68C529DEF82}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "Customer.Web\Core\Core\Core.csproj", "{BDC2CC46-602A-4FC3-AF32-C13E632EC174}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "Core\Core\Core.csproj", "{BDC2CC46-602A-4FC3-AF32-C13E632EC174}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Customer.Web", "Customer.Web", "{9A5AEA6B-C7C2-4409-AA46-8E6E5C7F98CE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApi", "Customer.Web\Customer.Web\WebApi\WebApi.csproj", "{02F1AB84-9D7A-489C-A8AA-E3E5C3E7595D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApi", "Customer.Web\WebApi\WebApi.csproj", "{02F1AB84-9D7A-489C-A8AA-E3E5C3E7595D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain", "Customer.Web\Customer.Web\Domain\Domain.csproj", "{E92915D6-79EB-49A8-A52B-E288A0878D48}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain", "Customer.Web\Domain\Domain.csproj", "{E92915D6-79EB-49A8-A52B-E288A0878D48}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application", "Customer.Web\Customer.Web\Application\Application.csproj", "{3F9134CF-E36E-499C-B3D3-9103D77F3979}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application", "Customer.Web\Application\Application.csproj", "{3F9134CF-E36E-499C-B3D3-9103D77F3979}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "Customer.Web\Customer.Web\Infrastructure\Infrastructure.csproj", "{25C36F98-B668-4A2E-8589-2BE1EAC438DF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "Customer.Web\Infrastructure\Infrastructure.csproj", "{25C36F98-B668-4A2E-8589-2BE1EAC438DF}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ApiGateways", "ApiGateways", "{09A61B2A-DB2E-46C6-8A52-3566013B740F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YarpApiGateway", "Customer.Web\ApiGateways\YarpApiGateway\YarpApiGateway.csproj", "{4FD3AA13-E002-4776-AF67-BE89BC142BA7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YarpApiGateway", "ApiGateways\YarpApiGateway\YarpApiGateway.csproj", "{4FD3AA13-E002-4776-AF67-BE89BC142BA7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
