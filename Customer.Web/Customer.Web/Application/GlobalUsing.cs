@@ -1,0 +1,10 @@
+﻿global using Domain.Models;
+global using Domain.ValueObjects;
+global using Core.CQRS;
+global using Application.Data;
+global using Application.Dtos;
+global using Application.Exceptions;
+global using MediatR;
+global using Microsoft.Extensions.Logging;
+global using Microsoft.EntityFrameworkCore;
+global using Application.Extensions;

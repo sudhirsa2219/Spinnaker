@@ -1,0 +1,131 @@
+﻿@page "/"
+@using System.Net.Http.Json
+@using System.Threading
+@using System.Collections.ObjectModel
+@using CustomerWebApp.Model
+@using Newtonsoft.Json
+@inject HttpClient httpClient
+@inject IDialogService DialogService
+<PageTitle>Home</PageTitle>
+
+<MudDataGrid @ref="dataGrid" T="Customer" ServerData="ServerReload" Filterable="false">
+    <ToolBarContent>
+        <MudButton Class="me-2" @onclick="CreateNewCustomer" StartIcon="@Icons.Material.Filled.PersonAddAlt1" Variant="Variant.Filled" Color="Color.Primary">
+            Add New
+        </MudButton>
+        <MudSpacer />
+        <MudTextField T="string" ValueChanged="@(s=>OnSearch(s))" Placeholder="Search" Adornment="Adornment.Start"
+        AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.Id" />
+        <PropertyColumn Property="x => x.Name" />
+        <PropertyColumn Property="x => x.Surname" />
+        <PropertyColumn Property="x => x.Email" />
+        <PropertyColumn Property="x => x.Telephone" />
+        <PropertyColumn Property="x => x.Country" />
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="Customer" />
+    </PagerContent>
+</MudDataGrid>
+@code {
+
+
+
+    MudDataGrid<Customer> dataGrid;
+    string searchString = null;
+
+    /// <summary>
+    /// Here we simulate getting the paged, filtered and ordered data from the server
+    /// </summary>
+    private async Task<GridData<Customer>> ServerReload(GridState<Customer> state)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:6200/customers");
+
+        var response = await httpClient.SendAsync(request);
+        //var pgresponse = await httpClient.GetFromJsonAsync<PagedCustomers>("https://localhost:6200/customers");
+        string content = await response.Content.ReadAsStringAsync();
+        var pgdata = JsonConvert.DeserializeObject<CustomerResponse>(content);
+        IEnumerable<Customer> data = pgdata.Customers.Data;
+        await Task.Delay(300);
+        data = data.Where(element =>
+        {
+            if (string.IsNullOrWhiteSpace(searchString))
+                return true;
+            if (element.Surname.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                return true;
+            if ($"{element.Email} {element.Telephone} {element.Country}".Contains(searchString))
+                return true;
+            return false;
+        }).ToArray();
+        var totalItems = data.Count();
+
+        var sortDefinition = state.SortDefinitions.FirstOrDefault();
+        if (sortDefinition != null)
+        {
+            switch (sortDefinition.SortBy)
+            {
+                case nameof(Customer.Name):
+                    data = data.OrderByDirection(
+                        sortDefinition.Descending ? SortDirection.Descending : SortDirection.Ascending,
+                        o => o.Name
+                    );
+                    break;
+                case nameof(Customer.Surname):
+                    data = data.OrderByDirection(
+                        sortDefinition.Descending ? SortDirection.Descending : SortDirection.Ascending,
+                        o => o.Surname
+                    );
+                    break;
+                case nameof(Customer.Email):
+                    data = data.OrderByDirection(
+                        sortDefinition.Descending ? SortDirection.Descending : SortDirection.Ascending,
+                        o => o.Email
+                    );
+                    break;
+                case nameof(Customer.Telephone):
+                    data = data.OrderByDirection(
+                        sortDefinition.Descending ? SortDirection.Descending : SortDirection.Ascending,
+                        o => o.Telephone
+                    );
+                    break;
+                case nameof(Customer.Country):
+                    data = data.OrderByDirection(
+                        sortDefinition.Descending ? SortDirection.Descending : SortDirection.Ascending,
+                        o => o.Country
+                    );
+                    break;
+            }
+        }
+
+        var pagedData = data.Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
+        return new GridData<Customer>
+            {
+                TotalItems = totalItems,
+                Items = pagedData
+            };
+    }
+
+    private Task OnSearch(string text)
+    {
+        searchString = text;
+        return dataGrid.ReloadServerData();
+    }
+
+    private async Task CreateNewCustomer()
+    {
+        var options = new DialogOptions { MaxWidth = MaxWidth.Large };
+
+        var dialog = await DialogService.ShowAsync<CreateUpdate>("Create Customer", options);
+
+        var result = await dialog.Result;
+
+        if(result is not null && !result.Canceled)
+        {
+            await dataGrid.ReloadServerData();
+        }
+    }
+}
