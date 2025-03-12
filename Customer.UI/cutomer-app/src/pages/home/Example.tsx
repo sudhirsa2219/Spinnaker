@@ -24,11 +24,12 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import { type User, fakeData, usStates } from './makeData';
+import { usStates } from './makeData';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import fileDownload from "js-file-download";
 import {type Customer} from '../../api/DataType';
+import { createCustomerApi, deleteCustomerApi, getCustomersApi, updateCustomerApi } from '../../api/ApiService';
 
 
 const Example = () => {
@@ -36,7 +37,7 @@ const Example = () => {
     Record<string, string | undefined>
   >({});
 
-  const columns = useMemo<MRT_ColumnDef<User>[]>(
+  const columns = useMemo<MRT_ColumnDef<Customer>[]>(
     () => [
       {
         accessorKey: 'id',
@@ -45,33 +46,33 @@ const Example = () => {
         size: 80,
       },
       {
-        accessorKey: 'firstName',
+        accessorKey: 'name',
         header: 'First Name',
         muiEditTextFieldProps: {
           required: true,
-          error: !!validationErrors?.firstName,
-          helperText: validationErrors?.firstName,
+          error: !!validationErrors?.name,
+          helperText: validationErrors?.name,
           //remove any previous validation errors when user focuses on the input
           onFocus: () =>
             setValidationErrors({
               ...validationErrors,
-              firstName: undefined,
+              name: undefined,
             }),
           //optionally add validation checking for onBlur or onChange
         },
       },
       {
-        accessorKey: 'lastName',
+        accessorKey: 'surname',
         header: 'Last Name',
         muiEditTextFieldProps: {
           required: true,
-          error: !!validationErrors?.lastName,
-          helperText: validationErrors?.lastName,
+          error: !!validationErrors?.surname,
+          helperText: validationErrors?.surname,
           //remove any previous validation errors when user focuses on the input
           onFocus: () =>
             setValidationErrors({
               ...validationErrors,
-              lastName: undefined,
+              surname: undefined,
             }),
         },
       },
@@ -92,14 +93,46 @@ const Example = () => {
         },
       },
       {
-        accessorKey: 'state',
-        header: 'State',
+        accessorKey: 'telephone',
+        header: 'Telephone',
+        muiEditTextFieldProps: {
+          type: 'telephone',
+          required: true,
+          error: !!validationErrors?.telephone,
+          helperText: validationErrors?.telephone,
+          //remove any previous validation errors when user focuses on the input
+          onFocus: () =>
+            setValidationErrors({
+              ...validationErrors,
+              telephone: undefined,
+            }),
+        },
+      },
+      {
+        accessorKey: 'idNumber',
+        header: 'Id Number',
+        muiEditTextFieldProps: {
+          type: 'idNumber',
+          required: true,
+          error: !!validationErrors?.idNumber,
+          helperText: validationErrors?.idNumber,
+          //remove any previous validation errors when user focuses on the input
+          onFocus: () =>
+            setValidationErrors({
+              ...validationErrors,
+              idNumber: undefined,
+            }),
+        },
+      },
+      {
+        accessorKey: 'country',
+        header: 'Country',
         editVariant: 'select',
         editSelectOptions: usStates,
         muiEditTextFieldProps: {
           select: true,
-          error: !!validationErrors?.state,
-          helperText: validationErrors?.state,
+          error: !!validationErrors?.country,
+          helperText: validationErrors?.country,
         },
       },
     ],
@@ -124,7 +157,7 @@ const Example = () => {
     useDeleteUser();
 
   //CREATE action
-  const handleCreateUser: MRT_TableOptions<User>['onCreatingRowSave'] = async ({
+  const handleCreateUser: MRT_TableOptions<Customer>['onCreatingRowSave'] = async ({
     values,
     table,
   }) => {
@@ -139,7 +172,7 @@ const Example = () => {
   };
 
   //UPDATE action
-  const handleSaveUser: MRT_TableOptions<User>['onEditingRowSave'] = async ({
+  const handleSaveUser: MRT_TableOptions<Customer>['onEditingRowSave'] = async ({
     values,
     table,
   }) => {
@@ -154,13 +187,13 @@ const Example = () => {
   };
 
   //DELETE action
-  const openDeleteConfirmModal = (row: MRT_Row<User>) => {
+  const openDeleteConfirmModal = (row: MRT_Row<Customer>) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       deleteUser(row.original.id);
     }
   };
 
-  const convertToXML = (jsonData: User[]): string => {
+  const convertToXML = (jsonData: Customer[]): string => {
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<Customers>\n`;
 
     jsonData.forEach((row) => {
@@ -281,13 +314,14 @@ const Example = () => {
 function useCreateUser() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (user: User) => {
+    mutationFn: async (user: Customer) => {
       //send api update request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
+      await createCustomerApi(user);
+      //await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
       return Promise.resolve();
     },
     //client side optimistic update
-    onMutate: (newUserInfo: User) => {
+    onMutate: (newUserInfo: Customer) => {
       queryClient.setQueryData(
         ['users'],
         (prevUsers: any) =>
@@ -297,7 +331,7 @@ function useCreateUser() {
               ...newUserInfo,
               id: (Math.random() + 1).toString(36).substring(7),
             },
-          ] as User[],
+          ] as Customer[],
       );
     },
     // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }), //refetch users after mutation, disabled for demo
@@ -306,12 +340,13 @@ function useCreateUser() {
 
 //READ hook (get users from api)
 function useGetUsers() {
-  return useQuery<User[]>({
+  return useQuery<Customer[]>({
     queryKey: ['users'],
     queryFn: async () => {
       //send api request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      return Promise.resolve(fakeData);
+      const custdata = await getCustomersApi();
+      //await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
+      return Promise.resolve(custdata);
     },
     refetchOnWindowFocus: false,
   });
@@ -321,15 +356,16 @@ function useGetUsers() {
 function useUpdateUser() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (user: User) => {
+    mutationFn: async (user: Customer) => {
       //send api update request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
+      await updateCustomerApi(user);
+      //await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
       return Promise.resolve();
     },
     //client side optimistic update
-    onMutate: (newUserInfo: User) => {
+    onMutate: (newUserInfo: Customer) => {
       queryClient.setQueryData(['users'], (prevUsers: any) =>
-        prevUsers?.map((prevUser: User) =>
+        prevUsers?.map((prevUser: Customer) =>
           prevUser.id === newUserInfo.id ? newUserInfo : prevUser,
         ),
       );
@@ -344,13 +380,14 @@ function useDeleteUser() {
   return useMutation({
     mutationFn: async (custId: string) => {
       //send api update request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
+      await deleteCustomerApi(custId);
+      //await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
       return Promise.resolve();
     },
     //client side optimistic update
     onMutate: (userId: string) => {
       queryClient.setQueryData(['users'], (prevUsers: any) =>
-        prevUsers?.filter((user: User) => user.id !== userId),
+        prevUsers?.filter((user: Customer) => user.id !== userId),
       );
     },
     // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }), //refetch users after mutation, disabled for demo
@@ -388,12 +425,12 @@ const validateEmail = (email: string) =>
       /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
     );
 
-function validateUser(user: User) {
+function validateUser(user: Customer) {
   return {
-    firstName: !validateRequired(user.firstName)
+    firstName: !validateRequired(user.name)
       ? 'First Name is Required'
       : '',
-    lastName: !validateRequired(user.lastName) ? 'Last Name is Required' : '',
+    lastName: !validateRequired(user.surname) ? 'Last Name is Required' : '',
     email: !validateEmail(user.email) ? 'Incorrect Email Format' : '',
   };
 }

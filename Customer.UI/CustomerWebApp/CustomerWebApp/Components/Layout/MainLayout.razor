@@ -7,6 +7,7 @@
 <MudLayout>
     <MudAppBar Elevation="1">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+        <MudImage Src="logo.png" Height="65" />
         <MudText Typo="Typo.h5" Class="ml-3">Customer Management</MudText>
         <MudSpacer />
         <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />
@@ -18,6 +19,13 @@
     <MudMainContent Class="mt-16 pa-4">
         @Body
     </MudMainContent>
+    <MudAppBar Elevation="1" Style="top: auto; bottom: 0" Dense="true" Fixed="true">
+        <MudGrid Justify="Justify.Center">
+            <MudText Style="font-size:small" Class="ml-1">Arch Retail Solutions</MudText>
+            <MudSpacer />
+            <MudText Style="font-size:small" Class="ml-1">Spinnaker © All rights reserved.</MudText>
+        </MudGrid>
+    </MudAppBar>
 </MudLayout>
 
 

@@ -18,6 +18,16 @@ builder.Services.AddSwaggerGen(o =>
     o.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "Customer Management Web Api", Version = "v1" });
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        policy =>
+        {
+            policy.AllowAnyOrigin();
+            policy.AllowAnyMethod();
+            policy.AllowAnyHeader();
+        });
+});
 
 var app = builder.Build();
 
@@ -25,7 +35,7 @@ var app = builder.Build();
 app.UseApiServices();
 app.UseSwagger();
 app.UseSwaggerUI();
-
+app.UseCors();
 if (app.Environment.IsDevelopment())
 {
     await app.InitialiseDatabaseAsync();

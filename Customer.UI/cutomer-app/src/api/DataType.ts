@@ -4,6 +4,14 @@ export interface Customer {
     surname:string;
     email: string;
     telephone:string;
-    idnumber:string
+    idNumber:string
     country: string;
+  }
+
+  export interface UpdateCustomerRequest{
+    Customer: Customer;
+  }
+
+  export interface CreateCustomerRequest{
+    Customer: Customer;
   }
