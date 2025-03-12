@@ -1,4 +1,5 @@
 ﻿using Application.Customer.Commands.Create;
+using Microsoft.AspNetCore.Mvc;
 
 namespace WebApi.Endpoints;
 
@@ -9,7 +10,7 @@ public class CreateCustomer : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/customers", async (CreateCustomerRequest request, ISender sender) =>
+        app.MapPost("/customers", async ([FromBody] CreateCustomerRequest request, ISender sender) =>
         {
             var command = request.Adapt<CreateCustomerCommand>();
 
@@ -17,7 +18,7 @@ public class CreateCustomer : ICarterModule
 
             var response = result.Adapt<CreateCustomerResponse>();
 
-            return Results.Created($"/carts/{response.Id}", response);
+            return Results.Created($"/customers/{response.Id}", response);
         })
         .WithName("CreateCustomer")
         .Produces<CreateCustomerResponse>(StatusCodes.Status201Created)

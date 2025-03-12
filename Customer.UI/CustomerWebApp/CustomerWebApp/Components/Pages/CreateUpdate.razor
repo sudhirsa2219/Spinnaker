@@ -1,1 +1,80 @@
-﻿@inject ISnackbar Snackbar
+﻿@using CustomerWebApp.Model
+@using CustomerWebApp.Services
+@inject ISnackbar Snackbar
+
+<EditForm Model="@model" OnValidSubmit="OnValidSubmit">
+    <MudDialog>
+        <DialogContent>
+            <DataAnnotationsValidator />
+            <MudGrid Class="mb-5">
+                <MudItem xs="9">
+                    @* <MudTextField Variant="Variant.Outlined" ShrinkLabel Label="Name" @bind-Value="model.Id" For="@(()=>model.Id)" /> *@
+                    <MudTextField Variant="Variant.Outlined" ShrinkLabel Label="Name" @bind-Value="model.Name" For="@(()=>model.Name)" />
+                    <MudTextField Variant="Variant.Outlined" ShrinkLabel Label="Surname" @bind-Value="model.Surname" For="@(()=>model.Surname)" />
+                    <MudTextField Variant="Variant.Outlined" ShrinkLabel Label="Email" @bind-Value="model.Email" For="@(()=>model.Email)" />
+                    <MudTextField Variant="Variant.Outlined" ShrinkLabel Label="Telephone" @bind-Value="model.Telephone" For="@(()=>model.Telephone)" />
+                    <MudTextField Variant="Variant.Outlined" ShrinkLabel Label="Id Number" @bind-Value="model.IdNumber" For="@(()=>model.IdNumber)" />
+                    @* <MudTextField Variant="Variant.Outlined" ShrinkLabel Label="Name" @bind-Value="model.Country" For="@(()=>model.Country)" /> *@
+                    <MudSelect @bind-Value="model.Country" Label="Country" Required RequiredError="You must select a Country!!!" Margin="@Margin.Dense">
+                        <MudSelectItem Value="@("USA")" />
+                        <MudSelectItem Value="@("India")" />
+                        <MudSelectItem Value="@("South Africa")" />
+                        <MudSelectItem Value="@("UK")" />
+                        <MudSelectItem Value="@("Canada")" />
+                        <MudSelectItem Value="@("Japan")" />
+                    </MudSelect>
+
+                </MudItem>
+            </MudGrid>
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="Cancel">Cancel</MudButton>
+            <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary">Save</MudButton>
+        </DialogActions>
+    </MudDialog>
+</EditForm>
+
+@code{
+    [Parameter]
+    public UIActionEnum Action { get; set; } = UIActionEnum.Insert;
+
+    [Parameter]
+    public Customer model { get; set; } = new Customer();
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+
+    private async Task OnValidSubmit(EditContext editContext)
+    {
+        bool result=false;
+
+        switch(Action)
+        {
+            case UIActionEnum.Insert:
+                {
+                    result = await ApiService.CreateCustomer(model);
+                    break;
+                }
+            case UIActionEnum.Update:
+                {
+                    result = await ApiService.UpdateCustomer(model);
+                    break;
+                }
+        }
+        if (result)
+        {
+            Snackbar.Add("Successfully created/updated the Customer", Severity.Success);
+            MudDialog.Close();
+        }
+        else
+        {
+            Snackbar.Add("Failed to create/update the Customer", Severity.Error);
+        }
+
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}

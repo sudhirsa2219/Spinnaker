@@ -3,15 +3,44 @@
 @using System.Threading
 @using System.Collections.ObjectModel
 @using CustomerWebApp.Model
+@using CustomerWebApp.Services
+@using Microsoft.AspNetCore.Mvc
 @using Newtonsoft.Json
+@using System.Xml.Serialization
+@using System.IO
+@inject IJSRuntime JS
 @inject HttpClient httpClient
 @inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
 <PageTitle>Home</PageTitle>
+<script>
+    function BlazorDownloadFile(filename, contentType, content) {
+    // Create the URL
+    const file = new File([content], filename, { type: contentType });
+    const exportUrl = URL.createObjectURL(file);
+
+    // Create the <a> element and click on it
+    const a = document.createElement("a");
+    document.body.appendChild(a);
+    a.href = exportUrl;
+    a.download = filename;
+    a.target = "_self";
+    a.click();
+
+    // We don't need to keep the object URL, let's release the memory
+    // On older versions of Safari, it seems you need to comment this line...
+    URL.revokeObjectURL(exportUrl);
+    }
+</script>
 
 <MudDataGrid @ref="dataGrid" T="Customer" ServerData="ServerReload" Filterable="false">
     <ToolBarContent>
         <MudButton Class="me-2" @onclick="CreateNewCustomer" StartIcon="@Icons.Material.Filled.PersonAddAlt1" Variant="Variant.Filled" Color="Color.Primary">
             Add New
+        </MudButton>
+        <MudButton Class="me-2" @onclick="DownloadXmlFile" StartIcon="@Icons.Material.Filled.ImportExport" Variant="Variant.Filled" Color="Color.Tertiary">
+            Export
         </MudButton>
         <MudSpacer />
         <MudTextField T="string" ValueChanged="@(s=>OnSearch(s))" Placeholder="Search" Adornment="Adornment.Start"
@@ -24,6 +53,24 @@
         <PropertyColumn Property="x => x.Email" />
         <PropertyColumn Property="x => x.Telephone" />
         <PropertyColumn Property="x => x.Country" />
+        <TemplateColumn CellClass="d-flex justify-end">
+            <CellTemplate>
+                <MudButton Class="me-2"
+                Size="@Size.Small"
+                Variant="Variant.Filled"
+                StartIcon="@Icons.Material.Filled.Edit"
+                Color="@Color.Warning"
+                OnClick="@(()=>this.UpdateCustomer(context))">
+                </MudButton>
+                <MudButton Class="me-2"
+                Size="@Size.Small"
+                Variant="Variant.Filled"
+                StartIcon="@Icons.Material.Filled.Delete"
+                Color="@Color.Error"
+                OnClick="@(()=>this.RemoveCustomer(context))">
+                </MudButton>
+            </CellTemplate>
+        </TemplateColumn>
     </Columns>
     <PagerContent>
         <MudDataGridPager T="Customer" />
@@ -41,13 +88,7 @@
     /// </summary>
     private async Task<GridData<Customer>> ServerReload(GridState<Customer> state)
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:6200/customers");
-
-        var response = await httpClient.SendAsync(request);
-        //var pgresponse = await httpClient.GetFromJsonAsync<PagedCustomers>("https://localhost:6200/customers");
-        string content = await response.Content.ReadAsStringAsync();
-        var pgdata = JsonConvert.DeserializeObject<CustomerResponse>(content);
-        IEnumerable<Customer> data = pgdata.Customers.Data;
+        IEnumerable<Customer> data = await ApiService.GetAllCustomers();
         await Task.Delay(300);
         data = data.Where(element =>
         {
@@ -117,15 +158,92 @@
 
     private async Task CreateNewCustomer()
     {
-        var options = new DialogOptions { MaxWidth = MaxWidth.Large };
+        var options = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge };
 
-        var dialog = await DialogService.ShowAsync<CreateUpdate>("Create Customer", options);
+        var parameters = new DialogParameters<CreateUpdate>
+        {
+            {x => x.Action, UIActionEnum.Insert},
+            {x => x.model, new Customer()}
+        };
+
+        var dialog = await DialogService.ShowAsync<CreateUpdate>("Create Customer", parameters, options);
 
         var result = await dialog.Result;
 
         if(result is not null && !result.Canceled)
         {
             await dataGrid.ReloadServerData();
+        }
+    }
+
+    private async Task UpdateCustomer(CellContext<Customer> customer)
+    {
+        var custview = await ApiService.GetCustomerById(customer.Item.Id);
+        if(custview is null)
+        {
+            Snackbar.Add($"Unable too find Customer with Id={customer.Item.Id}", Severity.Error);
+            return;
+        }
+        var options = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge };
+
+        var parameters = new DialogParameters<CreateUpdate>
+        {
+            {x => x.Action, UIActionEnum.Update},
+            {x => x.model, custview}
+        };
+
+        var dialog = await DialogService.ShowAsync<CreateUpdate>("Update Customer", parameters, options);
+
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            await dataGrid.ReloadServerData();
+        }
+    }
+
+    private async Task RemoveCustomer(CellContext<Customer> customer)
+    {
+        var dialog = await DialogService.ShowAsync<AlertDialog>($"Remove: {customer.Item.Name} {customer.Item.Surname}");
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            var confirmed = (bool)(result.Data ?? false);
+            if(confirmed)
+            {
+                var delResult = await ApiService.DeleteCustomer(customer.Item.Id);
+
+                if(delResult)
+                {
+                    Snackbar.Add("Successfully removed the customer", Severity.Success);
+                    await dataGrid.ReloadServerData();
+                }
+                else
+                {
+                    Snackbar.Add("Failed to removed the customer", Severity.Error);
+                }
+            }
+        }
+    }
+
+    private async Task DownloadXmlFile()
+    {
+        var data = await ApiService.GetAllCustomers();
+
+        // var jsonstr = System.Text.Json.JsonSerializer.Serialize(data);
+        // byte[] byteArray = System.Text.ASCIIEncoding.ASCII.GetBytes(jsonstr);
+
+        // await JS.InvokeVoidAsync("BlazorDownloadFile", "file.txt", "text/plain", byteArray);
+
+        XmlSerializer serializer = new XmlSerializer(data.GetType());
+        using (MemoryStream stream = new MemoryStream())
+        {
+            serializer.Serialize(stream, data);
+
+            byte[] xmlbytes = stream.ToArray();
+
+            await JS.InvokeVoidAsync("BlazorDownloadFile", "CustomerData.xml", "text/plain", xmlbytes);
         }
     }
 }
