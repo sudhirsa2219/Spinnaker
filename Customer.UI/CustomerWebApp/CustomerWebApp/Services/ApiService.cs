@@ -8,14 +8,14 @@ namespace CustomerWebApp.Services
 {
     public class ApiService
     {
+        public static string ApiBaseUrl;
         public static async Task<List<Customer>> GetAllCustomers()
         {
             var customers = new List<Customer>();
             HttpClient client = new HttpClient();
-            var request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:6200/customers");
+            var request = new HttpRequestMessage(HttpMethod.Get, $"{ApiBaseUrl}/customers");
 
             var response = await client.SendAsync(request);
-            //var pgresponse = await httpClient.GetFromJsonAsync<PagedCustomers>("https://localhost:6200/customers");
             string content = await response.Content.ReadAsStringAsync();
             var pgdata = JsonConvert.DeserializeObject<CustomerResponse>(content);
 
@@ -32,7 +32,7 @@ namespace CustomerWebApp.Services
             var jsonData = JsonConvert.SerializeObject(reqdata);
             HttpContent content = new StringContent(jsonData, Encoding.UTF8, "application/json");
 
-            HttpResponseMessage response = await client.PostAsync("https://localhost:6200/customers", content);
+            HttpResponseMessage response = await client.PostAsync($"{ApiBaseUrl}/customers", content);
 
             if (response.StatusCode == System.Net.HttpStatusCode.Created)
                 return true;
@@ -48,7 +48,7 @@ namespace CustomerWebApp.Services
             var jsonData = JsonConvert.SerializeObject(reqdata);
             HttpContent content = new StringContent(jsonData, Encoding.UTF8, "application/json");
 
-            HttpResponseMessage response = await client.PutAsync("https://localhost:6200/customers", content);
+            HttpResponseMessage response = await client.PutAsync($"{ApiBaseUrl}/customers", content);
 
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 return true;
@@ -60,10 +60,9 @@ namespace CustomerWebApp.Services
         {
             Customer customer ;
             HttpClient client = new HttpClient();
-            var request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:6200/customers");
+            var request = new HttpRequestMessage(HttpMethod.Get, $"{ApiBaseUrl}/customers");
 
             var response = await client.SendAsync(request);
-            //var pgresponse = await httpClient.GetFromJsonAsync<PagedCustomers>("https://localhost:6200/customers");
             string content = await response.Content.ReadAsStringAsync();
             var pgdata = JsonConvert.DeserializeObject<CustomerResponse>(content);
             customer = pgdata.Customers.Data.Where(x => x.Id == id).FirstOrDefault();
@@ -74,7 +73,7 @@ namespace CustomerWebApp.Services
         public static async Task<bool> DeleteCustomer(Guid id)
         {
             HttpClient client = new HttpClient();
-            var url = $"https://localhost:6200/customers/{id}";
+            var url = $"{ApiBaseUrl}/customers/{id}";
             var response = await client.DeleteAsync(url);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 return true;

@@ -1,7 +1,16 @@
 using MudBlazor.Services;
 using CustomerWebApp.Components;
+using DotNetEnv;
+using CustomerWebApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+Env.Load();
+
+// Access the environment variables
+string apiBaseUrl = Environment.GetEnvironmentVariable("MICRO_SERVICE_URL");
+
+ApiService.ApiBaseUrl = apiBaseUrl;
 
 // Add MudBlazor services
 builder.Services.AddHttpClient();

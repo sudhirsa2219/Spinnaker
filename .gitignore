@@ -2,3 +2,5 @@
 /Customer.UI/CustomerWebApp/CustomerWebApp/bin
 /Customer.UI/CustomerWebApp/CustomerWebApp/obj
 /Customer.UI/CustomerWebApp/CustomerWebApp/wwwroot
+/Automation/api/__pycache__
+/Automation/api/.idea

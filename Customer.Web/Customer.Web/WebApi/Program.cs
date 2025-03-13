@@ -36,14 +36,10 @@ app.UseApiServices();
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseCors();
-if (app.Environment.IsDevelopment())
-{
-    await app.InitialiseDatabaseAsync();
 
-    app.UseSwagger();
-    app.UseSwaggerUI(o =>
-    {
-    });
-}
+await app.InitialiseDatabaseAsync();
+
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.Run();

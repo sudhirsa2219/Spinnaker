@@ -1,0 +1,83 @@
+services:
+  sql-server:
+    image: mcr.microsoft.com/mssql/server
+    container_name: sql-server
+    ports:
+      - "1433:1433"
+    environment:
+      - SA_PASSWORD=Sn$123456789
+      - ACCEPT_EULA= "Y"
+      
+    networks:
+      - mynetwork
+  
+  # yarp-gateway:
+  #   build:
+  #     context: ../Customer.Web
+  #     dockerfile: ApiGateways/YarpApiGateway/Dockerfile
+  #   container_name: yarp-gateway
+  #   ports:
+  #     - "8080:8080" # Exposes YARP on port 8080
+  #   volumes:
+  #     - "E:/githubcode/Personal/Spinnaker/Customer.Web/ApiGateways/YarpApiGateway/appsettings.json:/app/appsettings.json" # Mount YARP config file
+  #   networks:
+  #     - mynetwork
+
+  microservice:
+    build:
+      context: ../Customer.Web
+      dockerfile: Customer.Web/WebApi/Dockerfile
+    environment:
+      - DB_SERVER=sql-server
+      - DB_PORT=1433
+      - DB_NAME=CustomerDB
+      - DB_USER=sa
+      - DB_PASSWORD=Sn$123456789
+      - ASPNETCORE_URLS=http://+:6210
+    #deploy:
+    #  replicas: 3 # Running 3 replicas of the microservice
+    ports:
+      - "6210:6210" # Exposes YARP on port 8080
+      - "6200:6200" # Exposes YARP on port 8080
+    depends_on:
+      - sql-server
+    networks:
+      - mynetwork
+
+  ui:
+    build:
+      context: ../Customer.UI/CustomerWebApp
+      dockerfile: CustomerWebApp/Dockerfile
+    container_name: ui-app
+    ports:
+      - "7080:7080" # Exposes UI on port 3000
+      - "7081:7081"
+    environment:
+      - MICRO_SERVICE_URL=http://microservice:6210  # UI knows how to reach microservice through YARP
+      - ASPNETCORE_URLS=http://+:7080
+
+    depends_on:
+      - microservice
+    networks:
+      - mynetwork
+
+  react-ui:
+    build:
+      context: ../Customer.UI/cutomer-app
+      dockerfile: Dockerfile
+      args:
+      - VITE_MICRO_SERVICE_URL=http://host.docker.internal:6210
+    container_name: react-ui-app
+    ports:
+      - "3000:3000" # Exposes UI on port 3000
+    environment:
+      - VITE_MICRO_SERVICE_URL=http://host.docker.internal:6210  # UI knows how to reach microservice through YARP
+
+    depends_on:
+      - microservice
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge

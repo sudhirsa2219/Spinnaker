@@ -1,5 +1,5 @@
 ﻿namespace Application.Customer.Commands.Create;
-public class CreateCartHandler(IApplicationDbContext dbContext)
+public class CreateCustomerHandler(IApplicationDbContext dbContext)
     : ICommandHandler<CreateCustomerCommand, CreateCustomerResult>
 {
     public async Task<CreateCustomerResult> Handle(CreateCustomerCommand command, CancellationToken cancellationToken)
