@@ -5,7 +5,7 @@ This project is a complete Customer Management System built with a microservice 
 ## Folder Structure
 
 ### 1. `Customer.Web`
-The **Web API** microservice for customer management. It follows **Clean Architecture** design principles and supports CRUD operations. It includes built-in support for **Swagger**.
+The **Web API** microservice for customer management. It follows **Clean Architecture** design principles and supports CRUD operations. It includes built-in support for **Swagger**. It also uses **Carter** and **MediatR** packages and uses Command Query pattern and easy writing of routes.
 
 The folder structure is as follows:
 - **Core**: Contains common services that can be consumed by all microservices.
